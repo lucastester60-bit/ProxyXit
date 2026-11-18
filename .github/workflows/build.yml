@@ -19,6 +19,8 @@ jobs:
           if [ -f ProxyXit.zip ]; then
             unzip ProxyXit.zip -d extracted_project
           fi
+          echo "Conteúdo extraído:"
+          ls -R extracted_project
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -26,15 +28,14 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Build with Gradle
+      - name: Compile or Locate APK
         run: |
           cd extracted_project
           if [ -f gradlew ]; then
             chmod +x gradlew
-            ./gradlew assembleRelease || ./gradlew build
+            ./gradlew assembleRelease || ./gradlew assembleDebug
           else
-            echo "Procurando por ficheiros build.gradle..."
-            find . -name "build.gradle"
+            echo "Gradle wrapper não encontrado. Procurando por APKs existentes no zip..."
           fi
 
       - name: Upload APK Artifact
@@ -44,3 +45,5 @@ jobs:
           path: |
             extracted_project/**/*.apk
             **/*.apk
+            *.apk
+          if-no-files-found: ignore
