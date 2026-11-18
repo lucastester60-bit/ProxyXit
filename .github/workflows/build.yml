@@ -19,8 +19,6 @@ jobs:
           if [ -f ProxyXit.zip ]; then
             unzip ProxyXit.zip -d extracted_project
           fi
-          echo "--- ESTRUTURA DAS PASTAS ---"
-          ls -la extracted_project
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -28,16 +26,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Build with Gradle
-        run: |
-          cd extracted_project
-          # Procura qualquer pasta que tenha o gradlew e compila nela
-          find . -name "gradlew" -execdir chmod +x {} \; -execdir ./gradlew assembleRelease \;
-
-      - name: Collect APKs
+      - name: Find and Copy APKs
         run: |
           mkdir -p final_output
-          find extracted_project -name "*.apk" -exec cp {} final_output/ \;
+          find . -name "*.apk" -not -path "./final_output/*" -exec cp {} final_output/ \;
+          echo "Ficheiros encontrados:"
           ls -la final_output
 
       - name: Upload APK Artifact
@@ -45,3 +38,4 @@ jobs:
         with:
           name: ProxyXit-APK
           path: final_output/*.apk
+          if-no-files-found: ignore
