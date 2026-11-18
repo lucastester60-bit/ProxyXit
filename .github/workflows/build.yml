@@ -14,28 +14,26 @@ jobs:
       - name: Install Unzip Tool
         run: sudo apt-get update && sudo apt-get install -y unzip
 
-      - name: Create Real Android Project Structure
+      - name: Setup Android Project Structure
         run: |
-          mkdir -p myapp/app/src/main/java/com/proxyxit/app
-          mkdir -p myapp/app/src/main/res/layout
-          mkdir -p myapp/app/src/main/res/values
-
-          # Descompacta o teu zip para uma pasta temporária
+          mkdir -p android_project/app/src/main/java/com/proxyxit/app
+          mkdir -p android_project/app/src/main/res/values
           mkdir -p temp_extracted
+          
           if [ -f ProxyXit.zip ]; then
             unzip ProxyXit.zip -d temp_extracted
           fi
 
-          # Move os teus ficheiros para o local correto do projeto Android
-          find temp_extracted -name "*.kt" -exec cp {} myapp/app/src/main/java/com/proxyxit/app/ \;
+          # Copia os ficheiros kotlin e o manifesto se existirem
+          find temp_extracted -name "*.kt" -exec cp {} android_project/app/src/main/java/com/proxyxit/app/ \;
           if [ -f temp_extracted/AndroidManifest.xml ]; then
-            cp temp_extracted/AndroidManifest.xml myapp/app/src/main/res/
+            cp temp_extracted/AndroidManifest.xml android_project/app/src/main/res/
           else
-            echo '<manifest package="com.proxyxit.app"></manifest>' > myapp/app/src/main/res/AndroidManifest.xml
+            echo '<manifest package="com.proxyxit.app"></manifest>' > android_project/app/src/main/res/AndroidManifest.xml
           fi
 
-          # Cria o build.gradle básico para forçar a compilação
-          cat << 'EOF' > myapp/build.gradle
+          # Cria os ficheiros de configuração do Gradle necessários para compilar
+          cat << 'EOF' > android_project/build.gradle
           buildscript {
               repositories {
                   google()
@@ -53,7 +51,7 @@ jobs:
           }
           EOF
 
-          cat << 'EOF' > myapp/app/build.gradle
+          cat << 'EOF' > android_project/app/build.gradle
           plugins {
               id 'com.android.application'
           }
@@ -70,7 +68,7 @@ jobs:
           }
           EOF
 
-          cat << 'EOF' > myapp/settings.gradle
+          cat << 'EOF' > android_project/settings.gradle
           rootProject.name = "ProxyXit"
           include ':app'
           EOF
@@ -81,15 +79,15 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Build APK with Gradle
+      - name: Build APK
         run: |
-          cd myapp
+          cd android_project
           gradle wrapper --gradle-version 8.5
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: Upload Final APK
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ProxyXit-APK
-          path: myapp/app/build/outputs/apk/debug/app-debug.apk
+          path: android_project/app/build/outputs/apk/debug/app-debug.apk
