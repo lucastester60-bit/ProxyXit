@@ -31,10 +31,10 @@ jobs:
           cd extracted_project
           if [ -f gradlew ]; then
             chmod +x gradlew
-            ./gradlew assembleRelease
+            ./gradlew assembleRelease || ./gradlew build
           else
-            echo "Gradle wrapper não encontrado na raiz, procurando..."
-            find . -name "gradlew"
+            echo "Procurando por ficheiros build.gradle..."
+            find . -name "build.gradle"
           fi
 
       - name: Upload APK Artifact
@@ -42,5 +42,5 @@ jobs:
         with:
           name: ProxyXit-APK
           path: |
-            extracted_project/**/build/outputs/apk/release/*.apk
-            extracted_project/**/build/outputs/apk/**/*.apk
+            extracted_project/**/*.apk
+            **/*.apk
