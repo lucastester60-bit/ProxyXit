@@ -26,14 +26,21 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Build with Gradle (Stub)
+      - name: Build with Gradle
         run: |
-          echo "A compilar o APK estruturado..."
-          mkdir -p output_apk
-          echo "ProxyXit APK" > output_apk/app-release.apk
+          cd extracted_project
+          if [ -f gradlew ]; then
+            chmod +x gradlew
+            ./gradlew assembleRelease
+          else
+            echo "Gradle wrapper não encontrado na raiz, procurando..."
+            find . -name "gradlew"
+          fi
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ProxyXit-APK
-          path: output_apk/app-release.apk
+          path: |
+            extracted_project/**/build/outputs/apk/release/*.apk
+            extracted_project/**/build/outputs/apk/**/*.apk
